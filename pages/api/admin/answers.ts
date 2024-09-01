@@ -1,7 +1,6 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import { createClient } from '@supabase/supabase-js';
 
-// Initialize the Supabase client using environment variables
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -10,31 +9,27 @@ const supabase = createClient(
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   if (req.method === 'GET') {
     try {
-      // Perform a complex query using Supabase
+      // Fetch related data from the questions table using the foreign key relationship
       const { data, error } = await supabase
         .from('answers')
         .select(`
-          user_id:users(username),
-          questionnaire_id:questionnaires(name),
-          question_id:questions(question),
+          id,
+          user_id (username),
+          question_id (
+            question
+          ),
           answer
         `)
-        .order('user_id', { ascending: true })
-        .order('questionnaire_id', { ascending: true })
-        .order('question_id', { ascending: true });
+        .order('id', { ascending: true });
 
       if (error) {
         throw new Error(error.message);
       }
 
-      // Verify if questions are being returned in the response
-      console.log('Data fetched:', data);
-
       // Transform data to match the original output format
       const answers = data.map((row: any) => ({
-        username: row.username || 'Anonymous',
-        questionnaireName: row.name,
-        question: row.question || 'Question not found', // Add a fallback to detect missing questions
+        username: row.user_id?.username || 'Anonymous',
+        question: row.question_id?.question || 'Question not found',
         answer: row.answer,
       }));
 

@@ -4,8 +4,11 @@ import Navbar from '@/components/Navbar';
 
 interface UserAnswer {
   username: string;
-  questionnaireName: string;
-  question: string;
+  question: {
+    type: string;
+    options: string[];
+    question: string;
+  };
   answer: string;
 }
 
@@ -16,11 +19,11 @@ export default function AdminDashboard() {
   useEffect(() => {
     fetch('/api/admin/answers')
       .then((res) => {
-        console.log('Response status:', res.status);  // Log the response status
+        console.log('Response status:', res.status);
         return res.json();
       })
       .then((data) => {
-        console.log('Fetched data:', data);  // Log the data fetched from the API
+        console.log('Fetched data:', data);
         if (Array.isArray(data)) {
           setAnswers(data);
         } else {
@@ -30,16 +33,6 @@ export default function AdminDashboard() {
       .catch((err) => console.error('Error fetching answers:', err));
   }, []);
 
-  const extractQuestionText = (questionData: any) => {
-    if (!questionData || typeof questionData !== 'object' || !questionData.question) {
-      console.error('Invalid question data format:', questionData);
-      return 'No question text available';
-    }
-  
-    // Assuming `question` is the property within `question_id` that contains the text you want
-    return questionData.question || 'No question text available';
-  };
-
   return (
     <div>
       <Navbar />
@@ -48,8 +41,8 @@ export default function AdminDashboard() {
         <ul>
           {answers.map((answer, idx) => (
             <li key={idx}>
-              <strong>{answer.username}</strong> completed {answer.questionnaireName}: 
-              <p>Q: {extractQuestionText(answer.question)}</p>
+              <strong>{answer.username}</strong> answered:
+              <p>Q: {answer.question?.question}</p> {/* Render only the 'question' field */}
               <p>A: {answer.answer}</p>
             </li>
           ))}
