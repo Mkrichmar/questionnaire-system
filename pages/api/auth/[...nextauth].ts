@@ -25,7 +25,9 @@ export default NextAuth({
           if (user) {
             console.log("User found:", user);
             return user;
-          }
+          } else {
+            console.log("No user found with the provided credentials.");
+        }
           return null;
         },
       }),
