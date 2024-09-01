@@ -1,32 +1,28 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import pg from 'pg';
-import dotenv from 'dotenv';
+import { createClient } from '@supabase/supabase-js';
 
-console.log("API route '/api/questionnaires' invoked.");  // Log to ensure the route is hit
+console.log("API route '/api/questionnaires' invoked.");
 
-dotenv.config();
-
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false, // Adjust this based on your environment
-  },
-});
-
-console.log(process.env.DATABASE_URL);
-
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   try {
-    // Simple query to fetch the list of questionnaires
-    const result = await pool.query('SELECT id, name FROM questionnaires');
-    console.log(result.rows);
-    
+    const { data, error } = await supabase
+      .from('questionnaires')
+      .select('id, name');
 
-    // Return the rows as a JSON array
-    res.status(200).json(result.rows);
+    if (error) {
+      console.error('Supabase error:', error.message);
+      return res.status(500).json({ error: 'Failed to fetch questionnaires', details: error.message });
+    }
+
+    console.log(data);
+    res.status(200).json(data);
   } catch (error) {
-    console.error('Error fetching questionnaires:', error);
+    console.error('Unexpected error:', (error as Error).message);
     res.status(500).json({ error: 'Failed to fetch questionnaires' });
   }
 }

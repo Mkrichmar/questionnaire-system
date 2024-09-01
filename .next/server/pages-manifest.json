@@ -2,14 +2,9 @@
   "/_app": "pages/_app.js",
   "/_error": "pages/_error.js",
   "/_document": "pages/_document.js",
-  "/": "pages/index.js",
-  "/api/junction/[questionnaireId]": "pages/api/junction/[questionnaireId].js",
-  "/api/answers": "pages/api/answers.js",
-  "/questionnaire/[id]": "pages/questionnaire/[id].js",
-  "/api/questionnaire/[id]": "pages/api/questionnaire/[id].js",
-  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
   "/admin-dashboard": "pages/admin-dashboard.js",
-  "/api/questionnaires": "pages/api/questionnaires.js",
-  "/user-home": "pages/user-home.js",
+  "/api/auth/[...nextauth]": "pages/api/auth/[...nextauth].js",
+  "/": "pages/index.js",
+  "/questionnaire/[id]": "pages/questionnaire/[id].js",
   "/api/admin/answers": "pages/api/admin/answers.js"
 }

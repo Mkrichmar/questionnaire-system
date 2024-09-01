@@ -1,37 +1,70 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import pg from 'pg';
-import dotenv from 'dotenv';
+import { createClient } from '@supabase/supabase-js';
 
-dotenv.config();
-
-const pool = new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false, // Adjust this based on your environment
-  },
-});
+// Initialize the Supabase client using environment variables
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { id } = req.query;
 
   try {
-    // Fetch the questionnaire and its questions
-    const questionnaireResult = await pool.query('SELECT name FROM questionnaires WHERE id = $1', [id]);
-    const questionsResult = await pool.query('SELECT id, question FROM questions WHERE id IN (SELECT question_id FROM junction WHERE questionnaire_id = $1 ORDER BY priority)', [id]);
+    // Fetch the questionnaire name
+    const { data: questionnaireData, error: questionnaireError } = await supabase
+      .from('questionnaires')
+      .select('name')
+      .eq('id', id)
+      .single();
 
-    if (questionnaireResult.rows.length === 0) {
+    if (questionnaireError) {
+      console.error('Error fetching questionnaire:', questionnaireError.message);
+      return res.status(500).json({ error: 'Failed to fetch questionnaire' });
+    }
+
+    if (!questionnaireData) {
       return res.status(404).json({ error: 'Questionnaire not found' });
+    }
+
+    // Fetch the question IDs associated with the questionnaire from the junction table
+    const { data: junctionData, error: junctionError } = await supabase
+      .from('junction')
+      .select('question_id')
+      .eq('questionnaire_id', id)
+      .order('priority', { ascending: true });
+
+    if (junctionError) {
+      console.error('Error fetching question IDs:', junctionError.message);
+      return res.status(500).json({ error: 'Failed to fetch question IDs' });
+    }
+
+    const questionIds = junctionData?.map((item) => item.question_id) || [];
+
+    if (questionIds.length === 0) {
+      return res.status(200).json({ id, name: questionnaireData.name, questions: [] });
+    }
+
+    // Fetch the questions based on the IDs
+    const { data: questionsData, error: questionsError } = await supabase
+      .from('questions')
+      .select('id, question')
+      .in('id', questionIds);
+
+    if (questionsError) {
+      console.error('Error fetching questions:', questionsError.message);
+      return res.status(500).json({ error: 'Failed to fetch questions' });
     }
 
     const questionnaire = {
       id,
-      name: questionnaireResult.rows[0].name,
-      questions: questionsResult.rows,
+      name: questionnaireData.name,
+      questions: questionsData || [],
     };
 
     res.status(200).json(questionnaire);
   } catch (error) {
-    console.error('Error fetching questionnaire:', error);
+    console.error('Error fetching questionnaire:', (error as Error).message);
     res.status(500).json({ error: 'Failed to fetch questionnaire' });
   }
 }

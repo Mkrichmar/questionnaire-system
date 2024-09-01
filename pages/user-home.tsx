@@ -1,6 +1,6 @@
 import { useSession } from "next-auth/react";
 import Navbar from "../src/components/Navbar";
-import QuestionnaireSelection from "@/components/questionnaire-selection";
+import QuestionnaireSelection from "./questionnaire-selection";
 
 export default function QuestionnairePage() {
   const { data: session, status } = useSession();
@@ -19,8 +19,6 @@ export default function QuestionnairePage() {
       <h1>Home Page</h1>
       <p>Welcome, {session?.user?.name || session?.user?.email || "User"}</p>
       <QuestionnaireSelection/>
-
-      {/* Add your questionnaire content here */}
     </div>
   );
 }

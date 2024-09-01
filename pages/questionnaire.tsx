@@ -67,27 +67,49 @@ const Questionnaire: React.FC<QuestionnaireProps> = ({ questionnaireId }) => {
 
     useEffect(() => {
         const loadQuestions = async () => {
-            const fetchedQuestions = await fetchQuestionnaire(questionnaireId);
-            const junctionData = await fetchJunctionData(questionnaireId);
-
-            const parsedQuestions = fetchedQuestions.map((q) => {
-                const parsed = JSON.parse(q.question);
-                const junction = junctionData.find((j: JunctionData) => j.questionId === q.id);
-                return {
-                    id: q.id,
-                    type: parsed.type,
-                    question: parsed.question,
-                    options: parsed.options,
-                    priority: junction ? junction.priority : 0,
-                };
-            });
-
-            const sortedQuestions = parsedQuestions.sort((a, b) => a.priority - b.priority);
-            setQuestions(sortedQuestions);
+            try {
+                const fetchedQuestions = await fetchQuestionnaire(questionnaireId);
+                const junctionData = await fetchJunctionData(questionnaireId);
+    
+                const parsedQuestions = fetchedQuestions.map((q) => {
+                    let parsed;
+                    
+                    // Ensure q.question is a valid JSON string before parsing
+                    if (typeof q.question === 'string') {
+                        try {
+                            parsed = JSON.parse(q.question);
+                        } catch (error) {
+                            console.error('Error parsing question JSON:', error);
+                            parsed = { type: '', question: '', options: [] }; // Default structure
+                        }
+                    } else {
+                        // If q.question is not a string, use it directly (assuming it’s already parsed)
+                        parsed = q.question;
+                    }
+    
+                    const junction = junctionData.find((j: JunctionData) => j.questionId === q.id);
+                    return {
+                        id: q.id,
+                        type: parsed.type,
+                        question: parsed.question,
+                        options: parsed.options,
+                        priority: junction ? junction.priority : 0,
+                    };
+                });
+    
+                // Sort questions by priority
+                const sortedQuestions = parsedQuestions.sort((a, b) => a.priority - b.priority);
+                
+                // Update the state with sorted questions
+                setQuestions(sortedQuestions);
+            } catch (error) {
+                console.error('Error loading questions:', error);
+            }
         };
-
+    
         loadQuestions();
     }, [questionnaireId]);
+    
 
     const handleAnswerChange = (questionId: number, answer: string, isMultipleChoice: boolean) => {
         setAnswers((prev) => {

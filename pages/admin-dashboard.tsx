@@ -30,14 +30,14 @@ export default function AdminDashboard() {
       .catch((err) => console.error('Error fetching answers:', err));
   }, []);
 
-  const extractQuestionText = (questionData: string) => {
-    try {
-      const parsedData = JSON.parse(questionData);
-      return parsedData.question || questionData;
-    } catch (error) {
-      console.error('Error parsing question data:', error);
-      return questionData;  // Return the original if parsing fails
+  const extractQuestionText = (questionData: any) => {
+    if (!questionData || typeof questionData !== 'object' || !questionData.question) {
+      console.error('Invalid question data format:', questionData);
+      return 'No question text available';
     }
+  
+    // Assuming `question` is the property within `question_id` that contains the text you want
+    return questionData.question || 'No question text available';
   };
 
   return (

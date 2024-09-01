@@ -1,50 +1,50 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import { Pool } from 'pg';
+import { createClient } from '@supabase/supabase-js';
 
-const pool = new Pool({
-    connectionString: process.env.DATABASE_URL,
-});
+// Initialize the Supabase client using environment variables
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    let client;
-    if (req.method === 'GET') {
-        try {
-            client = await pool.connect();
+  if (req.method === 'GET') {
+    try {
+      // Perform a complex query using Supabase
+      const { data, error } = await supabase
+        .from('answers')
+        .select(`
+          user_id:users(username),
+          questionnaire_id:questionnaires(name),
+          question_id:questions(question),
+          answer
+        `)
+        .order('user_id', { ascending: true })
+        .order('questionnaire_id', { ascending: true })
+        .order('question_id', { ascending: true });
 
-            const query = `
-                SELECT
-                    COALESCE(users.username, 'Anonymous') AS username,
-                    questionnaires.name AS questionnaireName,
-                    questions.question,
-                    answers.answer
-                FROM
-                    answers
-                LEFT JOIN users ON answers.user_id = users.id
-                JOIN questions ON answers.question_id = questions.id
-                JOIN questionnaires ON answers.questionnaire_id = questionnaires.id
-                ORDER BY username, questionnaireName, questions.id;
+      if (error) {
+        throw new Error(error.message);
+      }
 
-            `;
+      // Verify if questions are being returned in the response
+      console.log('Data fetched:', data);
 
-            console.log("Executing query:", query);  // Log the query being executed
+      // Transform data to match the original output format
+      const answers = data.map((row: any) => ({
+        username: row.username || 'Anonymous',
+        questionnaireName: row.name,
+        question: row.question || 'Question not found', // Add a fallback to detect missing questions
+        answer: row.answer,
+      }));
 
-            const result = await client.query(query);
-
-            console.log("Query result:", result.rows);  // Log the result of the query
-
-            const answers = result.rows;
-
-            res.status(200).json(answers);
-        } catch (error) {
-            console.error('Error fetching answers:', error);
-            res.status(500).json({ error: 'Failed to fetch answers' });
-        } finally {
-            if (client) {
-                client.release();
-            }
-        }
-    } else {
-        res.setHeader('Allow', ['GET']);
-        res.status(405).end(`Method ${req.method} Not Allowed`);
+      res.status(200).json(answers);
+    } catch (error) {
+      console.error('Error fetching answers:', (error as Error).message);
+      res.status(500).json({ error: 'Failed to fetch answers' });
     }
+  } else {
+    res.setHeader('Allow', ['GET']);
+    res.status(405).end(`Method ${req.method} Not Allowed`);
+  }
 }

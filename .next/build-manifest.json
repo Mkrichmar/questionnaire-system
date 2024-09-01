@@ -34,16 +34,6 @@
       "static/chunks/webpack.js",
       "static/chunks/main.js",
       "static/chunks/pages/admin-dashboard.js"
-    ],
-    "/questionnaire/[id]": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/questionnaire/[id].js"
-    ],
-    "/user-home": [
-      "static/chunks/webpack.js",
-      "static/chunks/main.js",
-      "static/chunks/pages/user-home.js"
     ]
   },
   "ampFirstPages": []
