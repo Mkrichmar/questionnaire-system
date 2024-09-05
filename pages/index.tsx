@@ -50,7 +50,7 @@ export default function LoginPage() {
     if (session?.user?.role === "user") {
       router.push("/user-home");
     } else if (session?.user?.role === "admin") {
-      router.push("/admin-dashboard");
+      router.push("/admin-panel");
     } else {
       router.push("/");
     }

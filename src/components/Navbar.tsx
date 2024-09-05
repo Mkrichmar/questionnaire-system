@@ -13,7 +13,7 @@ export default function Navbar() {
       <ul>
         {status === "authenticated" ? (
           <>
-            {session?.user?.role === "admin" && <li><a href="/admin-dashboard">Admin Dashboard</a></li>}
+            {session?.user?.role === "admin" && <li><a href="/admin-panel">Admin Panel</a></li>}
             <li><a href="/api/auth/signout">Logout</a></li>
           </>
         ) : (

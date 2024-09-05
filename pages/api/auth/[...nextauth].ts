@@ -17,6 +17,8 @@ export default NextAuth({
           const users = [
             { id: "1", name: "J Smith", email: "jsmith@example.com", password: "password123", role: "user" },
             { id: "2", name: "Jane Doe", email: "janedoe@example.com", password: "anotherpass", role: "admin"},
+            { id: "3", name: "John Doe", email: "johndoe@example.com", password: "thirdpass", role: "user"},
+            { id: "4", name: "Fake User", email: "fakeuser@example.com", password: "fourthpass", role: "user"},
           ];
           const user = users.find(
             (user) => user.email === credentials?.username && user.password === credentials?.password
